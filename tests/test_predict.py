@@ -62,3 +62,47 @@ def test_predict_batch_oversized(client):
     )
 
     assert response.status_code == 400
+
+def test_v1_v2_response_shapes(client):
+    payload = {
+        "sepal_length": 5.1,
+        "sepal_width": 3.5,
+        "petal_length": 1.4,
+        "petal_width": 0.2
+    }
+
+    v1_response = client.post(
+        "/api/v1/predict",
+        json=payload
+    )
+
+    v2_response = client.post(
+        "/api/v2/predict",
+        json=payload
+    )
+
+    assert v1_response.status_code == 200
+    assert v2_response.status_code == 200
+
+    v1_data = v1_response.json()
+    v2_data = v2_response.json()
+
+    assert set(v1_data.keys()) == {
+        "prediction",
+        "confidence",
+        "request_id"
+    }
+
+    assert set(v2_data.keys()) == {
+        "prediction",
+        "species_name",
+        "confidence",
+        "request_id"
+    }
+
+    assert "species_name" not in v1_data
+    assert "species_name" in v2_data
+
+    assert v1_data["prediction"] == v2_data["prediction"]
+    assert 0 <= v1_data["confidence"] <= 1
+    assert 0 <= v2_data["confidence"] <= 1

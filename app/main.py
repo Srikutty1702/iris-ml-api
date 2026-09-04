@@ -5,6 +5,7 @@ import uuid
 import time
 from app.logging_config import logger
 from app.routers.v1 import router as v1_router
+from app.routers.v2 import router as v2_router
 from app.config import settings
 
 
@@ -23,6 +24,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 app.include_router(v1_router)
+app.include_router(v2_router)
 
 
 @app.middleware("http")

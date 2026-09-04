@@ -29,3 +29,9 @@ class PredictionOutput(BaseModel):
 class PredictionBatchOutput(BaseModel):
 
     predictions: List[PredictionOutput]
+
+class PredictionOutputV2(BaseModel):
+    prediction: int
+    species_name: str
+    confidence: float
+    request_id: str
