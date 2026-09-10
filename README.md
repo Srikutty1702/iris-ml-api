@@ -66,3 +66,14 @@ iris-ml-api/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+
+## How to Run This Project
+
+### Using Docker Compose
+
+1. Make sure Docker Desktop is running.
+
+2. Start the application:
+
+```bash
+docker compose up --build
