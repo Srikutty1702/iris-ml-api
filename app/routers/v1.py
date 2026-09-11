@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException,Depends
 from app.models.schemas import (
     PredictionInput,
     PredictionOutput,
@@ -7,6 +7,7 @@ from app.models.schemas import (
 )
 from app.logging_config import logger
 from app.config import settings
+from app.security import verify_api_key
 import time
 import json
 
@@ -22,7 +23,11 @@ def health(request: Request):
 
 
 @router.post("/predict", response_model=PredictionOutput)
-def predict(request: Request, data: PredictionInput):
+def predict(
+    request: Request,
+    data: PredictionInput,
+    api_key: str = Depends(verify_api_key)
+):
     model = request.app.state.model
     request_id = request.state.request_id
 

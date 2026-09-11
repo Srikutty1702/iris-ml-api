@@ -1,13 +1,18 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request,Depends
 
 from app.models.schemas import PredictionInput, PredictionOutputV2
+from app.security import verify_api_key
 
 
 router = APIRouter(prefix="/api/v2")
 
 
 @router.post("/predict", response_model=PredictionOutputV2)
-def predict_v2(request: Request, data: PredictionInput):
+def predict_v2(
+    request: Request,
+    data: PredictionInput,
+    api_key: str = Depends(verify_api_key)
+):
     model = request.app.state.model
     request_id = request.state.request_id
 

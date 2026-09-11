@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str
     MAX_BATCH_SIZE: int
     API_TITLE: str
+    API_KEY: str
 
     class Config:
         env_file = ".env"

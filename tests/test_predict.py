@@ -1,13 +1,14 @@
 def test_predict_valid_input(client):
     response = client.post(
-        "/api/v1/predict",
-        json={
-            "sepal_length": 5.1,
-            "sepal_width": 3.5,
-            "petal_length": 1.4,
-            "petal_width": 0.2
-        }
-    )
+    "/api/v1/predict",
+    headers={"X-API-Key": "iris-api-2026"},
+    json={
+        "sepal_length": 5.1,
+        "sepal_width": 3.5,
+        "petal_length": 1.4,
+        "petal_width": 0.2
+    }
+)
 
     assert response.status_code == 200
 
@@ -23,6 +24,7 @@ def test_predict_valid_input(client):
 def test_predict_missing_field(client):
     response = client.post(
         "/api/v1/predict",
+        headers={"X-API-Key": "iris-api-2026"},
         json={
             "sepal_length": 5.1,
             "sepal_width": 3.5,
@@ -35,6 +37,7 @@ def test_predict_missing_field(client):
 def test_predict_invalid_value(client):
     response = client.post(
         "/api/v1/predict",
+        headers={"X-API-Key": "iris-api-2026"},
         json={
             "sepal_length": -1,
             "sepal_width": 3.5,
@@ -58,6 +61,7 @@ def test_predict_batch_oversized(client):
 
     response = client.post(
         "/api/v1/predict-batch",
+        headers={"X-API-Key": "iris-api-2026"},
         json={"inputs": inputs}
     )
 
@@ -73,11 +77,13 @@ def test_v1_v2_response_shapes(client):
 
     v1_response = client.post(
         "/api/v1/predict",
+        headers={"X-API-Key": "iris-api-2026"},
         json=payload
     )
 
     v2_response = client.post(
         "/api/v2/predict",
+        headers={"X-API-Key": "iris-api-2026"},
         json=payload
     )
 
@@ -106,3 +112,45 @@ def test_v1_v2_response_shapes(client):
     assert v1_data["prediction"] == v2_data["prediction"]
     assert 0 <= v1_data["confidence"] <= 1
     assert 0 <= v2_data["confidence"] <= 1
+
+def test_predict_missing_api_key(client):
+    response = client.post(
+        "/api/v1/predict",
+        json={
+            "sepal_length": 5.1,
+            "sepal_width": 3.5,
+            "petal_length": 1.4,
+            "petal_width": 0.2
+        }
+    )
+
+    assert response.status_code == 401
+
+def test_predict_invalid_api_key(client):
+    response = client.post(
+        "/api/v1/predict",
+        headers={"X-API-Key": "wrong-key"},
+        json={
+            "sepal_length": 5.1,
+            "sepal_width": 3.5,
+            "petal_length": 1.4,
+            "petal_width": 0.2
+        }
+    )
+
+    assert response.status_code == 401
+
+def test_predict_unexpected_field(client):
+    response = client.post(
+        "/api/v1/predict",
+        headers={"X-API-Key": "iris-api-2026"},
+        json={
+            "sepal_length": 5.1,
+            "sepal_width": 3.5,
+            "petal_length": 1.4,
+            "petal_width": 0.2,
+            "extra_field": "not allowed"
+        }
+    )
+
+    assert response.status_code == 422

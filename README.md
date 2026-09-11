@@ -48,7 +48,7 @@ The Iris dataset contains three classes:
 
 ## Project Structure
 
-```text
+````text
 iris-ml-api/
 │
 ├── app/
@@ -66,7 +66,6 @@ iris-ml-api/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
-
 ## How to Run This Project
 
 ### Using Docker Compose
@@ -77,3 +76,4 @@ iris-ml-api/
 
 ```bash
 docker compose up --build
+````
