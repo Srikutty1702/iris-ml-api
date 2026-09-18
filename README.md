@@ -776,9 +776,6 @@ Created a Grafana dashboard named **Iris ML API Monitoring** with:
 The monitoring setup allows API activity and ML prediction activity to be visualized through Grafana using metrics collected by Prometheus.
 
 ```text
-Independent Extension:
-[To be completed]
-```
 
 ---
 
@@ -826,3 +823,4 @@ The project currently includes:
 Srivarsha
 
 B.Sc. Computer Science
+```
