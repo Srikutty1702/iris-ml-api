@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException,Depends
+from fastapi import APIRouter, Request, HTTPException, Depends
 from app.models.schemas import (
     PredictionInput,
     PredictionOutput,
@@ -8,8 +8,10 @@ from app.models.schemas import (
 from app.logging_config import logger
 from app.config import settings
 from app.security import verify_api_key
+from app.metrics import prediction_counter
 import time
 import json
+
 
 router = APIRouter(prefix="/api/v1")
 
@@ -43,6 +45,10 @@ def predict(
         probabilities = model.predict_proba(features)
         confidence = float(max(probabilities[0]))
 
+        prediction_counter.labels(
+           prediction_class=str(int(prediction[0]))
+        ).inc()
+
         logger.info(
             f"Prediction successful | request_id={request_id} | "
             f"prediction={int(prediction[0])}"
@@ -66,7 +72,11 @@ def predict(
 
 
 @router.post("/predict-batch", response_model=PredictionBatchOutput)
-def predict_batch(request: Request, data: PredictionBatchInput):
+def predict_batch(
+    request: Request,
+    data: PredictionBatchInput,
+    api_key: str = Depends(verify_api_key)
+):
     start_time = time.time()
 
     if len(data.inputs) > settings.MAX_BATCH_SIZE:
@@ -116,6 +126,7 @@ def predict_batch(request: Request, data: PredictionBatchInput):
     return {
         "predictions": results
     }
+
 
 @router.get("/model-info")
 def model_info():
