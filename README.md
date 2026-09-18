@@ -1,146 +1,156 @@
-Iris ML Prediction API
+# Iris ML Prediction API
 
 A beginner-friendly machine learning deployment project that trains an Iris flower classification model and exposes it through a monitored FastAPI REST API.
 
 The project demonstrates how a trained machine learning model can be packaged, served through an API, validated, tested, monitored, and containerized using Docker.
 
-Project Overview
+---
+
+## Project Overview
 
 This project follows the complete workflow of deploying a machine learning model as a REST API.
 
 The main components include:
 
-Machine learning model training
+- Machine learning model training
+- FastAPI REST API
+- Input and response validation
+- API versioning
+- API-key authentication for prediction endpoints
+- Structured logging
+- Prometheus monitoring
+- Automated testing
+- Integration testing
+- Basic concurrent load testing
+- Docker containerization
+- Docker Compose
+- Public cloud deployment using Render
+- Grafana + Prometheus monitoring extension
 
-FastAPI REST API
+---
 
-Input and response validation
+## Live Deployment
 
-API versioning
+The API is publicly deployed using Render.
 
-API-key authentication for prediction endpoints
+### Public API
 
-Structured logging
+```text
+https://iris-ml-api-41kq.onrender.com
+```
 
-Prometheus monitoring
+### Swagger Documentation
 
-Automated testing
+```text
+https://iris-ml-api-41kq.onrender.com/docs
+```
 
-Integration testing
+### Public Health Check
 
-Basic concurrent load testing
+```text
+https://iris-ml-api-41kq.onrender.com/api/v1/health
+```
 
-Docker containerization
+The API is deployed as a Docker-based web service on Render.
 
-Docker Compose
+---
 
-Public cloud deployment using Render
-
-Grafana + Prometheus monitoring extension
-
-Machine Learning Model
+## Machine Learning Model
 
 The project uses the Iris flower dataset.
 
 The model is a classification model trained using Scikit-learn.
 
-Input Features
+### Input Features
 
 The model uses four features:
 
-Sepal Length
+- Sepal Length
+- Sepal Width
+- Petal Length
+- Petal Width
 
-Sepal Width
-
-Petal Length
-
-Petal Width
-
-Target Classes
+### Target Classes
 
 The model predicts one of three Iris flower classes:
 
-Iris Setosa
-
-Iris Versicolor
-
-Iris Virginica
+- Iris Setosa
+- Iris Versicolor
+- Iris Virginica
 
 The trained model is saved using Joblib and loaded by the FastAPI application when the application starts.
 
-Technologies Used
+---
 
-Python
+## Technologies Used
 
-FastAPI
+- Python
+- FastAPI
+- Uvicorn
+- Scikit-learn
+- Pandas
+- Joblib
+- Pydantic
+- Pydantic Settings
+- Prometheus
+- prometheus-fastapi-instrumentator
+- pytest
+- Requests
+- Docker
+- Docker Compose
+- Git
+- GitHub
+- Grafana
 
-Uvicorn
+---
 
-Scikit-learn
+## Project Architecture
 
-Pandas
-
-Joblib
-
-Pydantic
-
-Pydantic Settings
-
-Prometheus
-
-prometheus-fastapi-instrumentator
-
-pytest
-
-Requests
-
-Docker
-
-Docker Compose
-
-Git
-
-GitHub
-
-Project Architecture
-
+```text
 Client
    |
    | HTTP Request
    v
 FastAPI Application
    |
-   +----------------------+
-   |                      |
-   v                      v
-Authentication        Input Validation
-(X-API-Key)           (Pydantic)
-   |                      |
-   +----------+-----------+
-              |
-              v
-        API Router
-        /api/v1
-        /api/v2
-              |
-              v
-        Saved ML Model
-        iris_model.pkl
-              |
-              v
-          Prediction
-              |
-              v
-     JSON Response
-              |
-              +------------------+
-              |                  |
-              v                  v
-           Logging          Prometheus
-                            /metrics
+   +----------------------+----------------------+
+   |                      |                      |
+   v                      v                      v
+Authentication       Input Validation        Middleware
+(X-API-Key)          (Pydantic)              (Logging/Request ID)
+   |                      |                      |
+   +----------------------+----------------------+
+                          |
+                          v
+                     API Routers
+                     /api/v1
+                     /api/v2
+                          |
+                          v
+                    Saved ML Model
+                    iris_model.pkl
+                          |
+                          v
+                      Prediction
+                          |
+                          v
+                     JSON Response
+                          |
+                 +--------+---------+
+                 |                  |
+                 v                  v
+              Logging           Prometheus
+                                /metrics
+                                   |
+                                   v
+                                Grafana
+```
 
-Project Structure
+---
 
+## Project Structure
+
+```text
 iris-ml-api/
 │
 ├── app/
@@ -148,7 +158,8 @@ iris-ml-api/
 │   ├── config.py
 │   ├── logging_config.py
 │   ├── security.py
-│   │   │
+│   ├── metrics.py
+│   │
 │   ├── models/
 │   │   └── schemas.py
 │   │
@@ -169,137 +180,141 @@ iris-ml-api/
 │
 ├── train.py
 ├── load_test.py
-├── metrics.py
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
+├── prometheus.yml
 ├── .dockerignore
 ├── .env.example
 ├── .gitignore
 ├── TESTING.md
 └── README.md
+```
 
-API Endpoints
+---
 
-API V1
+## API Endpoints
 
-Method
+### Root
 
-Endpoint
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| GET | `/` | Check that the API is alive |
 
-Purpose
+### API V1
 
-GET
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| GET | `/api/v1/health` | Check API and model health |
+| POST | `/api/v1/predict` | Predict one Iris flower |
+| POST | `/api/v1/predict-batch` | Predict multiple Iris flowers |
+| GET | `/api/v1/model-info` | View information about the serving model |
 
-/api/v1/health
+### API V2
 
-Check API and model health
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| POST | `/api/v2/predict` | Predict with species name included |
 
-POST
+### Monitoring
 
-/api/v1/predict
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| GET | `/metrics` | Expose Prometheus monitoring metrics |
 
-Predict one Iris flower
+---
 
-POST
+## API Authentication
 
-/api/v1/predict-batch
+Prediction endpoints use API-key authentication.
 
-Predict multiple Iris flowers
-
-GET
-
-/api/v1/model-info
-
-View information about the serving model
-
-API V2
-
-Method
-
-Endpoint
-
-Purpose
-
-POST
-
-/api/v2/predict
-
-Predict with species name included
-
-Monitoring
-
-Method
-
-Endpoint
-
-Purpose
-
-GET
-
-/metrics
-
-Prometheus monitoring metrics
-
-API Authentication
-
-Prediction endpoints use an API key for authentication.
-
-The API key is supplied through the X-API-Key request header.
+The API key is supplied through the `X-API-Key` request header.
 
 Example:
 
+```text
 X-API-Key: your-secret-api-key
+```
 
-The actual API key is stored in the .env file and is not committed to Git.
+The actual API key is stored in environment configuration and is not committed to Git.
 
-Example .env configuration:
+### Example `.env` configuration
 
+```text
 MODEL_PATH=ml/saved_model/iris_model.pkl
 LOG_LEVEL=INFO
 MAX_BATCH_SIZE=100
 API_TITLE=ML Model Deployment as a Monitored REST API
 API_KEY=your-secret-api-key
+```
 
-The .env.example file contains a placeholder value for sharing the project structure safely.
+The `.env.example` file contains a placeholder value for sharing the project structure safely.
 
-Input Validation
+---
+
+## Input Validation
 
 The API uses Pydantic schemas to validate incoming requests.
 
 The prediction input contains:
 
+```json
 {
   "sepal_length": 5.1,
   "sepal_width": 3.5,
   "petal_length": 1.4,
   "petal_width": 0.2
 }
+```
 
-Unexpected fields are rejected using Pydantic's extra="forbid" configuration.
+Unexpected fields are rejected using Pydantic's `extra="forbid"` configuration.
 
-Invalid requests return an HTTP 422 validation error.
+Invalid requests return an HTTP `422` validation error.
 
-Requests with a missing or invalid API key on protected prediction endpoints return HTTP 401.
+Requests with a missing or invalid API key on protected prediction endpoints return HTTP `401`.
 
-Example API Requests
+---
 
-Root Endpoint
+## Example API Requests
 
+The examples below use the local development URL.
+
+### Root Endpoint
+
+```bash
 curl http://localhost:8000/
+```
 
 Example response:
 
+```json
 {
   "message": "ML API is alive"
 }
+```
 
-Health Check
+---
 
+### Health Check
+
+```bash
 curl http://localhost:8000/api/v1/health
+```
 
-Single Prediction
+Example response:
 
+```json
+{
+  "status": "ok",
+  "model_loaded": true
+}
+```
+
+---
+
+### Single Prediction
+
+```bash
 curl -X POST "http://localhost:8000/api/v1/predict" \
 -H "X-API-Key: your-secret-api-key" \
 -H "Content-Type: application/json" \
@@ -309,17 +324,23 @@ curl -X POST "http://localhost:8000/api/v1/predict" \
   "petal_length": 1.4,
   "petal_width": 0.2
 }'
+```
 
 Example response:
 
+```json
 {
   "prediction": 0,
   "confidence": 0.976,
   "request_id": "example-request-id"
 }
+```
 
-Batch Prediction
+---
 
+### Batch Prediction
+
+```bash
 curl -X POST "http://localhost:8000/api/v1/predict-batch" \
 -H "X-API-Key: your-secret-api-key" \
 -H "Content-Type: application/json" \
@@ -339,23 +360,41 @@ curl -X POST "http://localhost:8000/api/v1/predict-batch" \
     }
   ]
 }'
+```
 
 The batch endpoint processes multiple Iris inputs in a single request.
 
-Model Information
+---
 
+### Model Information
+
+```bash
 curl http://localhost:8000/api/v1/model-info
+```
+
+Example response:
+
+```json
+{
+  "model_type": "LogisticRegression",
+  "version": "1.0",
+  "training_date": "2026-09-03",
+  "features": [
+    "sepal_length",
+    "sepal_width",
+    "petal_length",
+    "petal_width"
+  ]
+}
+```
 
 This endpoint provides information about the model currently being used by the API.
 
-Metrics
+---
 
-curl http://localhost:8000/metrics
+### V2 Prediction
 
-The endpoint returns Prometheus-formatted monitoring metrics.
-
-V2 Prediction
-
+```bash
 curl -X POST "http://localhost:8000/api/v2/predict" \
 -H "X-API-Key: your-secret-api-key" \
 -H "Content-Type: application/json" \
@@ -365,499 +404,652 @@ curl -X POST "http://localhost:8000/api/v2/predict" \
   "petal_length": 1.4,
   "petal_width": 0.2
 }'
+```
+
+Example response:
+
+```json
+{
+  "prediction": 0,
+  "species_name": "setosa",
+  "confidence": 0.976,
+  "request_id": "example-request-id"
+}
+```
 
 V2 extends the prediction response by including the predicted species name.
 
-Live Deployment
+---
 
-Public API:
+### Prometheus Metrics
 
-https://iris-ml-api-41kq.onrender.com
+```bash
+curl http://localhost:8000/metrics
+```
 
-Swagger Documentation:
+The endpoint returns Prometheus-formatted monitoring metrics.
 
-https://iris-ml-api-41kq.onrender.com/docs
+---
 
-API Documentation
+## Public API Requests
 
-When the application is running, interactive Swagger documentation is available at:
+The same endpoints can be tested on the deployed Render API.
 
+### Root
+
+```bash
+curl https://iris-ml-api-41kq.onrender.com/
+```
+
+### Health
+
+```bash
+curl https://iris-ml-api-41kq.onrender.com/api/v1/health
+```
+
+### Metrics
+
+```bash
+curl https://iris-ml-api-41kq.onrender.com/metrics
+```
+
+### Single Prediction
+
+Replace `your-render-api-key` with the API key configured in Render.
+
+```bash
+curl -X POST "https://iris-ml-api-41kq.onrender.com/api/v1/predict" \
+-H "X-API-Key: your-render-api-key" \
+-H "Content-Type: application/json" \
+-d '{
+  "sepal_length": 5.1,
+  "sepal_width": 3.5,
+  "petal_length": 1.4,
+  "petal_width": 0.2
+}'
+```
+
+### Batch Prediction
+
+```bash
+curl -X POST "https://iris-ml-api-41kq.onrender.com/api/v1/predict-batch" \
+-H "X-API-Key: your-render-api-key" \
+-H "Content-Type: application/json" \
+-d '{
+  "inputs": [
+    {
+      "sepal_length": 5.1,
+      "sepal_width": 3.5,
+      "petal_length": 1.4,
+      "petal_width": 0.2
+    },
+    {
+      "sepal_length": 6.7,
+      "sepal_width": 3.1,
+      "petal_length": 4.7,
+      "petal_width": 1.5
+    }
+  ]
+}'
+```
+
+### Model Information
+
+```bash
+curl https://iris-ml-api-41kq.onrender.com/api/v1/model-info
+```
+
+### V2 Prediction
+
+```bash
+curl -X POST "https://iris-ml-api-41kq.onrender.com/api/v2/predict" \
+-H "X-API-Key: your-render-api-key" \
+-H "Content-Type: application/json" \
+-d '{
+  "sepal_length": 5.1,
+  "sepal_width": 3.5,
+  "petal_length": 1.4,
+  "petal_width": 0.2
+}'
+```
+
+Do not commit the real Render API key to GitHub.
+
+---
+
+## API Documentation
+
+When the application is running locally, interactive Swagger documentation is available at:
+
+```text
 http://localhost:8000/docs
-
-The OpenAPI specification is available locally at:
-
-http://localhost:8000/openapi.json
+```
 
 For the deployed API:
 
-https://iris-ml-api-41kq.onrender.com/openapi.json
+```text
+https://iris-ml-api-41kq.onrender.com/docs
+```
 
-Monitoring
+The OpenAPI specification is available locally at:
+
+```text
+http://localhost:8000/openapi.json
+```
+
+For the deployed API:
+
+```text
+https://iris-ml-api-41kq.onrender.com/openapi.json
+```
+
+---
+
+## Monitoring
 
 The API is instrumented using Prometheus-compatible monitoring.
 
-The /metrics endpoint exposes live metrics such as:
+The `/metrics` endpoint exposes live metrics such as:
 
-Total HTTP requests
-
-HTTP request status codes
-
-Request information by endpoint
-
-Request latency metrics
-
-Python process metrics
-
-Memory usage
-
-CPU usage
-
-Custom Iris prediction metrics
+- Total HTTP requests
+- HTTP request status codes
+- Request information by endpoint
+- Request latency metrics
+- Python process metrics
+- Memory usage
+- CPU usage
+- Custom Iris prediction metrics
 
 Example:
 
+```text
 http://localhost:8000/metrics
+```
 
-Custom ML Metric
+### Custom ML Metric
 
 The project includes a custom Prometheus counter:
 
+```text
 iris_predictions_total
+```
 
 This metric records successful Iris predictions and uses the predicted class as a label.
 
 Example:
 
+```text
 iris_predictions_total{prediction_class="0"} 51.0
+```
 
-This allows the prediction activity of the machine learning API to be monitored separately from general HTTP traffic.
+This allows prediction activity from the machine learning API to be monitored separately from general HTTP traffic.
 
-Logging
+---
+
+## Logging
 
 The project uses centralized logging configuration.
 
 Logging records important application events such as:
 
-ML model loading
-
-Successful model loading
-
-API requests
-
-Request IDs
-
-Request methods
-
-Request paths
-
-Response status codes
-
-Request duration
+- ML model loading
+- Successful model loading
+- API requests
+- Request IDs
+- Request methods
+- Request paths
+- Response status codes
+- Request duration
 
 A request ID is generated for each request to help trace requests through the application.
 
 Sensitive client information should not be written to logs.
 
-API Versioning
+---
+
+## API Versioning
 
 The project supports multiple API versions.
 
-V1
+### V1
 
+```text
 /api/v1/
+```
 
-V2
+### V2
 
+```text
 /api/v2/
+```
 
 API versioning allows the API to evolve while maintaining compatibility with existing clients.
 
 V2 demonstrates an extended prediction response that includes the species name while preserving the existing V1 API.
 
-Testing
+---
 
-The project uses pytest for automated testing.
+## Testing
+
+The project uses `pytest` for automated testing.
 
 The test suite covers:
 
-Health endpoint
-
-Prediction endpoint
-
-Input validation
-
-Batch prediction
-
-Model information
-
-Missing API key
-
-Invalid API key
-
-Unexpected input fields
+- Health endpoint
+- Prediction endpoint
+- Input validation
+- Batch prediction
+- Model information
+- Missing API key
+- Invalid API key
+- Unexpected input fields
 
 Run the automated tests with:
 
-pytest
+```bash
+python -m pytest
+```
 
 Current test result:
 
+```text
 10 passed
+```
 
-Integration Testing
+---
+
+## Integration Testing
 
 Integration testing verifies the complete application through the running Docker container.
 
 The integration checks cover:
 
-/api/v1/health
+- `/api/v1/health`
+- `/api/v1/predict`
+- `/api/v1/predict-batch`
+- `/metrics`
 
-/api/v1/predict
-
-/api/v1/predict-batch
-
-/metrics
-
-The tests communicate with the running application through HTTP requests instead of using FastAPI's internal TestClient.
+The tests communicate with the running application through HTTP requests instead of using FastAPI's internal `TestClient`.
 
 Detailed testing information is documented in:
 
+```text
 TESTING.md
+```
 
-Load Testing
+---
+
+## Load Testing
 
 A basic concurrent load test was performed using:
 
+```text
 load_test.py
+```
 
 Test configuration:
 
+```text
 Concurrent requests: 50
 Endpoint: /api/v1/predict
 Request type: POST
 Authentication: X-API-Key
+```
 
 Test result:
 
+```text
 Total requests: 50
 Successful requests: 50
 Failed requests: 0
+```
 
 The load test was used to verify that the containerized API could successfully process multiple concurrent prediction requests.
 
-Docker
+---
+
+## Docker
 
 The application is containerized using Docker.
 
-Build the Docker Image
+### Build the Docker Image
 
+```bash
 docker build -t ml-api:v1 .
+```
 
-Run the Docker Container
+### Run the Docker Container
 
+```bash
 docker run --env-file .env -p 8000:8000 ml-api:v1
+```
 
 The API will then be available at:
 
+```text
 http://localhost:8000
+```
 
-Docker Compose
+---
 
-Docker Compose simplifies running the application and its configuration.
+## Docker Compose
 
-Start the application with:
+Docker Compose simplifies running the application and its monitoring services.
 
+Start the stack with:
+
+```bash
 docker compose up --build
+```
 
 Open the API documentation:
 
+```text
 http://localhost:8000/docs
+```
 
-Stop the application with:
+Prometheus:
 
+```text
+http://localhost:9090
+```
+
+Grafana:
+
+```text
+http://localhost:3000
+```
+
+Stop the stack with:
+
+```bash
 docker compose down
+```
 
-Environment Configuration
+---
+
+## Environment Configuration
 
 Application configuration is stored using environment variables.
 
 The project uses:
 
+```text
 .env
+```
 
 for local configuration.
 
 The following values are configured:
 
+```text
 MODEL_PATH
 LOG_LEVEL
 MAX_BATCH_SIZE
 API_TITLE
 API_KEY
+```
 
-The .env file is excluded from Git using .gitignore.
+The `.env` file is excluded from Git using `.gitignore`.
 
-The repository contains .env.example as a safe configuration template.
+The repository contains `.env.example` as a safe configuration template.
 
-Security
+For the Render deployment, these values are configured in the service Environment Variables section instead of committing `.env` to GitHub.
+
+---
+
+## Security
 
 The project includes basic API security features:
 
-API-key authentication
-
-Environment-based secret configuration
-
-Request validation
-
-Rejection of unexpected request fields
-
-CORS configuration
-
-.env excluded from Git
+- API-key authentication for prediction endpoints
+- Environment-based secret configuration
+- Request validation
+- Rejection of unexpected request fields
+- CORS configuration
+- `.env` excluded from Git
 
 The API key protects the prediction endpoints and is separate from Docker container security.
 
-Running the Project Locally
+---
 
-1. Create and activate a virtual environment
+## Running the Project Locally
 
+### 1. Create and activate a virtual environment
+
+```bash
 python -m venv venv
+```
 
 Windows:
 
+```bash
 venv\Scripts\activate
+```
 
-2. Install dependencies
+---
 
+### 2. Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-3. Configure environment variables
+---
 
-Create a .env file in the project root.
+### 3. Configure environment variables
+
+Create a `.env` file in the project root.
 
 Example:
 
+```text
 MODEL_PATH=ml/saved_model/iris_model.pkl
 LOG_LEVEL=INFO
 MAX_BATCH_SIZE=100
 API_TITLE=ML Model Deployment as a Monitored REST API
 API_KEY=your-secret-api-key
+```
 
-4. Start the API
+---
 
+### 4. Start the API
+
+```bash
 uvicorn app.main:app --reload
+```
 
-5. Open Swagger
+---
 
+### 5. Open Swagger
+
+```text
 http://localhost:8000/docs
+```
 
-Running with Docker Compose
+---
+
+## Running with Docker Compose
 
 Make sure Docker Desktop is running.
 
-Start the application:
+Start the application and monitoring stack:
 
+```bash
 docker compose up --build
+```
 
-Open:
+Open the API documentation:
 
+```text
 http://localhost:8000/docs
+```
+
+Prometheus:
+
+```text
+http://localhost:9090
+```
+
+Grafana:
+
+```text
+http://localhost:3000
+```
 
 To stop:
 
+```bash
 docker compose down
+```
 
-What I Learned
+---
+
+## What I Learned
 
 Through this project, I learned the complete basic workflow of deploying a machine learning model as a REST API.
 
-Machine Learning
+### Machine Learning
 
-Dataset preparation
+- Dataset preparation
+- Features and target
+- Train/test split
+- Model training
+- Model saving
+- Loading a saved model
+- Prediction and confidence
 
-Features and target
+### FastAPI
 
-Train/test split
+- FastAPI application structure
+- API endpoints
+- Request and response models
+- Pydantic validation
+- Routers
+- API versioning
+- Lifespan events
+- Middleware
 
-Model training
+### Security
 
-Model saving
+- API-key authentication
+- Environment variables
+- CORS
+- Input validation
 
-Loading a saved model
+### Testing
 
-Prediction and confidence
+- pytest
+- Unit testing
+- Integration testing
+- Concurrent load testing
+- Automated verification
 
-FastAPI
+### Monitoring
 
-FastAPI application structure
+- Prometheus
+- Counters
+- Gauges
+- Histograms
+- Summaries
+- HTTP request metrics
+- Custom machine learning metrics
 
-API endpoints
+### Deployment
 
-Request and response models
+- Docker
+- Docker images
+- Docker containers
+- Docker Compose
+- Environment configuration
+- Public cloud deployment using Render
 
-Pydantic validation
+### Development Workflow
 
-Routers
+- Git
+- GitHub
+- Commits
+- Branch management
+- Rebase
+- Push and pull
+- `.gitignore`
 
-API versioning
+---
 
-Lifespan events
-
-Middleware
-
-Security
-
-API-key authentication
-
-Environment variables
-
-CORS
-
-Input validation
-
-Testing
-
-pytest
-
-Unit testing
-
-Integration testing
-
-Concurrent load testing
-
-Automated verification
-
-Monitoring
-
-Prometheus
-
-Counters
-
-Gauges
-
-Histograms
-
-Summaries
-
-HTTP request metrics
-
-Custom machine learning metrics
-
-Deployment
-
-Docker
-
-Docker images
-
-Docker containers
-
-Docker Compose
-
-Environment configuration
-
-Development Workflow
-
-Git
-
-GitHub
-
-Commits
-
-Branch management
-
-Rebase
-
-Push and pull
-
-.gitignore
-
-Independent Extension — Grafana + Prometheus
+## Independent Extension — Grafana + Prometheus
 
 Implemented Grafana and Prometheus monitoring for the Iris ML API.
 
-Monitoring Architecture
+### Monitoring Architecture
 
+```text
 FastAPI API → Prometheus → Grafana
+```
 
-Prometheus
+### Prometheus
 
-Prometheus scrapes the FastAPI /metrics endpoint every 5 seconds.
+Prometheus scrapes the FastAPI `/metrics` endpoint every 5 seconds.
 
 Target:
 
+```text
 api:8000/metrics
+```
 
-Grafana Dashboard
+### Grafana Dashboard
 
-Created a Grafana dashboard named Iris ML API Monitoring with:
+Created a Grafana dashboard named **Iris ML API Monitoring** with:
 
-Total Iris Predictions — displays the custom iris_predictions_total ML metric.
+- **Total Iris Predictions** — displays the custom `iris_predictions_total` ML metric.
+- **API Request Rate** — displays the API request rate using Prometheus HTTP metrics.
 
-API Request Rate — displays the API request rate using Prometheus HTTP metrics.
-
-Result
+### Result
 
 The monitoring setup allows API activity and ML prediction activity to be visualized through Grafana using metrics collected by Prometheus.
 
 The Grafana and Prometheus extension is configured through the local Docker Compose monitoring stack. The public Render deployment hosts the FastAPI API separately.
 
-Future Improvements
+---
+
+## Future Improvements
 
 Possible future improvements include:
 
-Adding GitHub Actions for CI/CD
+- Adding GitHub Actions for CI/CD
+- Adding model retraining
+- Adding response caching
+- Adding more comprehensive load testing
+- Adding production-grade authentication
+- Adding database integration
 
-Adding model retraining
+---
 
-Adding response caching
-
-Adding more comprehensive load testing
-
-Adding production-grade authentication
-
-Adding database integration
-
-Project Status
+## Project Status
 
 The project currently includes:
 
-Iris ML model training
+- [x] Iris ML model training
+- [x] Saved ML model
+- [x] FastAPI REST API
+- [x] Pydantic validation
+- [x] API versioning
+- [x] API-key authentication
+- [x] Request logging
+- [x] Prometheus monitoring
+- [x] Custom ML metric
+- [x] Automated tests
+- [x] Integration testing
+- [x] Concurrent load testing
+- [x] Docker containerization
+- [x] Docker Compose
+- [x] Public cloud deployment
+- [x] Independent extension
+- [x] Final project polish
 
-Saved ML model
+---
 
-FastAPI REST API
-
-Pydantic validation
-
-API versioning
-
-API-key authentication
-
-Request logging
-
-Prometheus monitoring
-
-Custom ML metric
-
-Automated tests
-
-Integration testing
-
-Concurrent load testing
-
-Docker containerization
-
-Docker Compose
-
-Public cloud deployment
-
-Independent extension
-
-Final project polish
-
-Author
+## Author
 
 Srivarsha
 
 B.Sc. Computer Science
-
